@@ -5,7 +5,8 @@ import example.util.HttpClient
 import scala.annotation.tailrec
 import scala.collection.immutable.ArraySeq
 
-object Day2 {
+// Started from Day 2
+object IntCode {
 
   case class Positions(pos1: Int, pos2: Int, pos3: Int)
 
@@ -42,13 +43,13 @@ object Day2 {
 
   def part1(): Either[String, Int] =
     for {
-      intCode <- extractIntCode()
+      intCode <- extractIntCode(2)
       modifiedCode = modifyCode(ArraySeq.from(intCode), 12, 2)
     } yield runIntCode(modifiedCode).toList.head
 
   def part2(): Either[String, IndexedSeq[Int]] = {
     val result = for {
-      intCode <- extractIntCode()
+      intCode <- extractIntCode(2)
       intCodeImmutable = ArraySeq.from(intCode)
     } yield
       for {
@@ -76,9 +77,9 @@ object Day2 {
       resp
   }
 
-  def extractIntCode(): Either[String, Array[Int]] = {
+  def extractIntCode(day: Int): Either[String, Array[Int]] = {
       for {
-        resp <- HttpClient.get("https://adventofcode.com/2019/day/2/input")
+        resp <- HttpClient.get(s"https://adventofcode.com/2019/day/$day/input")
         validResp = validateResponse(resp)
         ln = validResp.split(",")
       } yield ln.map(_.toInt)
