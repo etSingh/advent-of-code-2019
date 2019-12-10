@@ -18,11 +18,11 @@ class Week1Spec extends FlatSpec with Matchers {
   }
 
   "Should give correct answers for" should "day 2" in {
-    IntCode.part1().map(
+    Day2.part1().map(
       ans => ans shouldEqual 3058646
     )
 
-    IntCode.part2().map(
+    Day2.part2().map(
       ans => ans.head shouldEqual 8976
     )
   }
@@ -66,6 +66,14 @@ class Week1Spec extends FlatSpec with Matchers {
     Day5.getOutput(largeExample, 7) shouldEqual 999
     Day5.getOutput(largeExample, 8) shouldEqual 1000
     Day5.getOutput(largeExample, 9) shouldEqual 1001
+
+    Day5.part1().map( output =>
+      output shouldEqual 16348437
+    )
+
+    Day5.part2().map( output =>
+      output shouldEqual 6959377
+    )
 
   }
 

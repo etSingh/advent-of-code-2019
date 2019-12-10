@@ -5,8 +5,7 @@ import example.util.HttpClient
 import scala.annotation.tailrec
 import scala.collection.immutable.ArraySeq
 
-// Started from Day 2
-object IntCode {
+object Day2 {
 
   case class Positions(pos1: Int, pos2: Int, pos3: Int)
 
