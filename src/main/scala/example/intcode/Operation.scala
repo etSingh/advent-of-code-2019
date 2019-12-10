@@ -18,6 +18,7 @@ case object NoParam extends Parameters
 trait Result
 case class OperationResult(nextIndex: Int, updatedIntCode: ArraySeq[Int]) extends Result
 case class SideEffectOutputResult(nextIndex: Int, updatedIntCode: ArraySeq[Int], output: Int) extends Result
+case class RelativeBaseOperationResult(nextIndex: Int, relativeBaseOffset: Int) extends Result
 
 case class HaltOperation(parameters: Parameters = NoParam) extends Operation {
   override def execute(intCode: ArraySeq[Int], index: Int): OperationResult = OperationResult(index + 0, intCode)
@@ -80,12 +81,19 @@ case class Output(parameters: OneParam) extends Operation {
   }
 }
 
+case class RelativeBaseOffset(parameters: OneParam) extends Operation {
+  override def execute(intCode: ArraySeq[Int], index: Int): RelativeBaseOperationResult = {
+    RelativeBaseOperationResult(index + 2, parameters.v1)
+  }
+}
+
 object Operation {
 
+  val RELATIVE_MODE = 2
   val IMMEDIATE_MODE = 1
   val POSITION_MODE = 0
 
-  def parseOperation(ins: Int, intCode: ArraySeq[Int], index: Int): Operation = {
+  def parseOperation(ins: Int, intCode: ArraySeq[Int], index: Int, relativeBase: Int): Operation = {
     val opCode = ins % 100
 
     if (opCode == 99) {
@@ -94,12 +102,13 @@ object Operation {
 
     val mode1 = ins / 100 % 10
     val mode2 = ins / 1000 % 10
+    val mode3 = ins / 10000 % 10
 
     if (List(1, 2, 7, 8) contains opCode) {
       val params: ThreeParams = ThreeParams(
-        getValue(mode1, intCode, index + 1),
-        getValue(mode2, intCode, index + 2),
-        intCode(index + 3))
+        getValue(mode1, intCode, index + 1, relativeBase),
+        getValue(mode2, intCode, index + 2, relativeBase),
+        getValue(mode3, intCode, index + 3, relativeBase))
       opCode match {
         case 1 => Add(params)
         case 2 => Multiply(params)
@@ -108,27 +117,31 @@ object Operation {
       }
     } else if (List(5, 6) contains opCode) {
       val params: TwoParams = TwoParams(
-        getValue(mode1, intCode, index + 1),
-        getValue(mode2, intCode, index + 2))
+        getValue(mode1, intCode, index + 1, relativeBase),
+        getValue(mode2, intCode, index + 2, relativeBase))
       opCode match {
         case 5 => JumpIfTrue(params)
         case 6 => JumpIfFalse(params)
       }
     }
     else {
-      val param = OneParam(getValue(mode1, intCode, index + 1))
+      val param = OneParam(getValue(mode1, intCode, index + 1, relativeBase))
       opCode match {
         case 4 => Output(param)
+        case 9 => RelativeBaseOffset(param)
       }
     }
   }
 
-  def getValue(mode: Int, intCode: ArraySeq[Int], index: Int): Int = {
-    if (mode == IMMEDIATE_MODE) {
-      intCode(index)
-    } else {
-      val position = intCode(index)
-      intCode(position)
+  def getValue(mode: Int, intCode: ArraySeq[Int], index: Int, relativeBase: Int): Int = {
+    mode match {
+      case IMMEDIATE_MODE => intCode(index)
+      case POSITION_MODE =>
+        val position = intCode(index)
+        intCode(position)
+      case RELATIVE_MODE =>
+        val position = intCode(index)
+        intCode(position + relativeBase)
     }
   }
 }
