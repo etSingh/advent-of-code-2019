@@ -77,4 +77,10 @@ class Week1Spec extends FlatSpec with Matchers {
 
   }
 
+  "IntCode computer for day 7" should "work" in {
+    Day7.part1().map{
+      maxThrusterSignal => maxThrusterSignal._2 shouldEqual 20413
+    }
+  }
+
 }
